@@ -259,17 +259,17 @@ export const buildFamilyTree = (familyData) => {
   const membersMap = new Map(members.map(member => [member.id, member]))
 
   // Função para encontrar os filhos diretos de um membro
-  const getDirectChildren = (parentId) => {
-    return members.filter(member => 
-      (member.pai === parentId && member.pai !== "99") || 
-      (member.mae === parentId && member.mae !== "99")
-    )
-  }
+const getDirectChildren = (parentId) => {
+  return members.filter(member => 
+    (String(member.pai) === String(parentId) && String(member.pai) !== "99") || 
+    (String(member.mae) === String(parentId) && String(member.mae) !== "99")
+  )
+}
 
   // Encontrar os fundadores (pessoas sem pais registrados ou com pais '99')
   const founders = members.filter(member => 
     (!member.pai && !member.mae) || 
-    (member.pai === "99" && member.mae === "99")
+    (string(member.pai) === "99" && string(member.mae === "99"))
   )
   
   // Função recursiva para construir a árvore
