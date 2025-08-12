@@ -267,10 +267,7 @@ const getDirectChildren = (parentId) => {
 }
 
   // Encontrar os fundadores (pessoas sem pais registrados ou com pais '99')
-  const founders = members.filter(member => 
-    (!member.pai && !member.mae) || 
-    (member.pai === "99" && member.mae === "99")
-  )
+  const founders = members.filter(member => !member.pai && !member.mae)
   
   // Função recursiva para construir a árvore
   const buildBranch = (memberId, level = 0) => {
