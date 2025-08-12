@@ -256,36 +256,37 @@ export const calculateDetailedStats = (familyData) => {
 // Construir árvore genealógica hierárquica
 export const buildFamilyTree = (familyData) => {
   const members = Object.values(familyData);
-  const membersMap = new Map(members.map(member => [member.id, member]));
+  const membersMap = new Map(members.map(member => [String(member.id), member]));
 
-  // Função para encontrar os filhos diretos de um membro (COM CORREÇÃO)
   const getDirectChildren = (parentId) => {
     return members.filter(member =>
-      (String(member.pai) === String(parentId) && member.pai && member.pai !== "99") ||
-      (String(member.mae) === String(parentId) && member.mae && member.mae !== "99")
+      (String(member.pai) === String(parentId)) ||
+      (String(member.mae) === String(parentId))
     );
   };
 
-  // Encontrar os fundadores (COM CORREÇÃO PARA INCLUIR SEUS AVÓS)
-  const founders = members.filter(member =>
-    (!member.pai || member.pai === "99") && (!member.mae || member.mae === "99")
+  const founders = members.filter(member => 
+    (!member.pai || member.pai === "99" || !membersMap.has(String(member.pai))) &&
+    (!member.mae || member.mae === "99" || !membersMap.has(String(member.mae)))
   );
 
-  // Função recursiva para construir a árvore
   const buildBranch = (memberId, level = 0) => {
-    const member = membersMap.get(memberId);
+    const member = membersMap.get(String(memberId));
     if (!member) return null;
 
-    const children = getDirectChildren(memberId);
+    const spouse = member.casadoCom ? membersMap.get(String(member.casadoCom)) : null;
+
+    // Pega os filhos de AMBOS os pais, para não duplicar
+    const children = getDirectChildren(member.id);
 
     return {
       ...member,
+      spouse: spouse, // Adiciona o cônjuge aqui
       level,
       children: children.map(child => buildBranch(child.id, level + 1)).filter(Boolean)
     };
   };
 
-  // Construir a árvore completa a partir dos fundadores
   const tree = founders.map(founder => buildBranch(founder.id, 0)).filter(Boolean);
 
   return tree;
