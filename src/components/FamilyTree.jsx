@@ -208,26 +208,33 @@ const FamilyTree = () => {
   console.log('Árvore Genealógica Construída:', JSON.stringify(tree, null, 2));
 
 const renderFamilyBranch = (members, level = 0) => (
-  <div className="flex flex-col items-center mb-12">
-    {members.map(member => (
-      <div key={member.id} className="relative">
-        {/* Casal como tronco/ramo */}
-        <div className="flex items-center justify-center gap-4">
+  <div className="tree flex flex-col items-center w-full p-5">
+    {members.map((member, index) => (
+      <div key={`${member.id}-${index}`} className="node relative flex flex-col items-center">
+        {/* Casal como tronco/ramo (horizontal) */}
+        <div className="couple flex items-center gap-2 md:gap-4">
           <FamilyMember member={member} onClick={setSelectedMember} level={level} />
           {member.spouse && (
             <>
-              <div className="connector-heart">❤️</div> {/* Conector pro spouse */}
+              <span className="connector mx-1 text-gray-500">-</span>
               <FamilyMember member={member.spouse} onClick={setSelectedMember} level={level} />
             </>
           )}
         </div>
 
-        {/* Ramificações pros filhos */}
+        {/* Conector vertical pra filhos */}
         {member.children?.length > 0 && (
-          <div className="mt-8 w-full">
-            {/* Linha horizontal pra distribuir children */}
-            <div className="branch-line-horizontal" style={{ width: '100%', height: '1px', background: '#ccc', margin: '10px 0' }}></div>
-            <div className="flex justify-around gap-8 flex-wrap">
+          <div className="connector-vertical w-0.5 h-8 bg-gray-300 mx-auto mt-4 mb-2"></div>
+        )}
+
+        {/* Linha horizontal pra distribuir filhos */}
+        {member.children?.length > 0 && (
+          <div className="branch-horizontal relative w-full flex justify-center">
+            <div 
+              className="horizontal-line absolute top-0 left-0 right-0 h-0.5 bg-gray-300" 
+              style={{ width: `${Math.min(member.children.length * 200, 1200)}px`, margin: '0 auto' }}
+            ></div>
+            <div className="children flex justify-around w-full gap-4 md:gap-8 flex-wrap">
               {renderFamilyBranch(member.children, level + 1)}
             </div>
           </div>
@@ -236,7 +243,6 @@ const renderFamilyBranch = (members, level = 0) => (
     ))}
   </div>
 );
-
   return (
     <div className="min-h-screen bg-gray-50 py-16">
       <div className="max-w-6xl mx-auto px-6">
