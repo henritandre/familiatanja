@@ -126,26 +126,6 @@ const FamilyMemberCard = ({ member, familyData, onClose }) => {
               <p className="text-gray-600">{countGrandchildren(member.id, familyData)}</p>
             </div>
           </div>
-
-          {(member.pai || member.mae || member.outrosPai || member.outrosMae) && (
-            <div className="border-t pt-4">
-              <h4 className="font-medium mb-2">👨‍👩‍👧‍👦 Pais:</h4>
-              <p className="text-gray-600">
-                <strong>Pai:</strong> {
-                  member.pai && member.pai !== "99" 
-                    ? familyData[member.pai]?.nomeCompleto || "Ainda não temos este dado"
-                    : member.outrosPai || "Ainda não temos este dado"
-                }
-              </p>
-              <p className="text-gray-600">
-                <strong>Mãe:</strong> {
-                  member.mae && member.mae !== "99" 
-                    ? familyData[member.mae]?.nomeCompleto || "Ainda não temos este dado"
-                    : member.outrosMae || "Ainda não temos este dado"
-                }
-              </p>
-            </div>
-          )}
         </div>
       </motion.div>
     </motion.div>
@@ -175,7 +155,6 @@ const FamilyMember = ({ member, onClick, level = 0 }) => (
   </motion.div>
 )
 
-// Novo componente para exibir casal
 const Couple = ({ member, spouse, onClick, level }) => (
   <div className="flex items-center gap-4">
     <FamilyMember member={member} onClick={onClick} level={level} />
@@ -187,13 +166,8 @@ const FamilyTree = () => {
   const { familyData, loading, error } = useFamilyData()
   const [selectedMember, setSelectedMember] = useState(null)
 
-  if (loading) {
-    return <div>Carregando dados da família...</div>
-  }
-
-  if (error) {
-    return <div>Erro ao carregar dados: {error}</div>
-  }
+  if (loading) return <div>Carregando dados da família...</div>
+  if (error) return <div>Erro ao carregar dados: {error}</div>
 
   const tree = buildFamilyTree(familyData)
 
@@ -221,33 +195,13 @@ const FamilyTree = () => {
   )
 
   return (
-    <div className="min-h-screen bg-gray-50 py-16">
+    <div className="min-h-screen bg-gray-50 py-16 overflow-x-auto">
       <div className="max-w-6xl mx-auto px-6">
-        <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="text-center mb-16"
-        >
-          <h2 className="text-4xl md:text-6xl font-thin mb-4 text-gray-900 tracking-tight">
-            Árvore Genealógica
-          </h2>
-          <p className="text-xl text-gray-600 font-light">
-            Clique em qualquer foto para ver mais detalhes
-          </p>
-        </motion.div>
-
-        {tree.length > 0 ? (
-          <div className="text-center overflow-x-auto">
-            <h3 className="text-2xl font-light text-gray-700 mb-6">Fundadores</h3>
-            {renderFamilyBranch(tree)}
-          </div>
-        ) : (
-          <div className="text-center py-16">
-            <p className="text-gray-500 text-xl">Nenhum dado familiar encontrado</p>
-          </div>
-        )}
+        <h2 className="text-4xl md:text-6xl font-thin mb-4 text-gray-900 tracking-tight text-center">
+          Árvore Genealógica
+        </h2>
+        {tree.length > 0 ? renderFamilyBranch(tree) : <p>Nenhum dado familiar encontrado</p>}
       </div>
-
       <AnimatePresence>
         {selectedMember && (
           <FamilyMemberCard 
