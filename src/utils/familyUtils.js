@@ -256,43 +256,52 @@ export const calculateDetailedStats = (familyData) => {
 
 // Construir árvore genealógica hierárquica
 export const buildFamilyTree = (familyData) => {
-  const members = Object.values(familyData)
-  const membersMap = new Map(members.map(member => [member.id, member]))
+  const members = Object.values(familyData);
+  const membersMap = new Map(members.map(member => [String(member.id), member])); // Use String pra consistência
 
   // Função para encontrar os filhos diretos de um membro
   const getDirectChildren = (parentId) => {
-    return members.filter(member => 
-      (member.pai === parentId && member.pai !== "99") || 
-      (member.mae === parentId && member.mae !== "99")
-    )
-  }
+    return members.filter(member =>
+      (String(member.pai) === String(parentId) && String(member.pai) !== "99") ||
+      (String(member.mae) === String(parentId) && String(member.mae) !== "99")
+    );
+  };
 
   // Encontrar os fundadores (pessoas sem pais registrados ou com pais '99')
-  const founders = members.filter(member => 
-    (!member.pai && !member.mae) || 
-    (member.pai === "99" && member.mae === "99")
-  )
-  
+  // Adicionei o check pra não incluir quem é filho de alguém
+  const potentialFounders = members.filter(member =>
+    (!member.pai && !member.mae) ||
+    (String(member.pai) === "99" && String(member.mae) === "99")
+  );
+
+  const allChildrenIds = new Set();
+  members.forEach(member => {
+    if (member.pai && String(member.pai) !== "99") allChildrenIds.add(String(member.id));
+    if (member.mae && String(member.mae) !== "99") allChildrenIds.add(String(member.id));
+  });
+
+  const founders = potentialFounders.filter(member => !allChildrenIds.has(String(member.id)));
+
   // Função recursiva para construir a árvore
   const buildBranch = (memberId, level = 0) => {
-    const member = membersMap.get(memberId)
-    if (!member) return null
+    const member = membersMap.get(String(memberId)); // Use String aqui também
+    if (!member) return null;
 
-    const children = getDirectChildren(memberId)
-    const spouseId = String(member.casadoCom)
-    const spouse = spouseId && spouseId !== "99" ? membersMap.get(spouseId) : null
-    return { ...member, level, spouse, children: ... }
-      
+    const children = getDirectChildren(memberId);
+    const spouseId = member.casadoCom ? String(member.casadoCom) : null;
+    const spouse = spouseId && spouseId !== "99" ? membersMap.get(spouseId) : null;
+
     return {
       ...member,
       level,
+      spouse, // Integrado aqui
       children: children.map(child => buildBranch(child.id, level + 1)).filter(Boolean)
-    }
-  }
-  
+    };
+  };
+
   // Construir a árvore completa a partir dos fundadores
-  const tree = founders.map(founder => buildBranch(founder.id, 0)).filter(Boolean)
-  
-  return tree
-}
+  const tree = founders.map(founder => buildBranch(founder.id, 0)).filter(Boolean);
+
+  return tree;
+};
 
