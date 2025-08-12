@@ -1,126 +1,41 @@
-// Utilitários para manipulação de dados da família
+export const buildFamilyTree = (familyData) => {
+  const members = Object.values(familyData)
+  const membersMap = new Map(members.map(member => [member.id, member]))
 
-// Calcular idade
-export const calculateAge = (birthDate, deathDate = null) => {
-  if (!birthDate) return null
-  
-  const birth = new Date(birthDate)
-  const end = deathDate ? new Date(deathDate) : new Date()
-  const age = end.getFullYear() - birth.getFullYear()
-  const monthDiff = end.getMonth() - birth.getMonth()
-  
-  if (monthDiff < 0 || (monthDiff === 0 && end.getDate() < birth.getDate())) {
-    return age - 1
+  const getDirectChildren = (parentId) => {
+    return members.filter(member => 
+      (String(member.pai) === String(parentId) && member.pai !== "99") || 
+      (String(member.mae) === String(parentId) && member.mae !== "99")
+    )
   }
-  return age
-}
 
-// Formatar data
-export const formatDate = (dateString) => {
-  if (!dateString) return "Ainda não temos este dado"
-  const date = new Date(dateString)
-  return date.toLocaleDateString('pt-BR')
-}
-
-// Obter informações de relacionamento
-export const getRelationshipInfo = (memberId, familyData) => {
-  if (!memberId || memberId === "99") return "Ainda não temos este dado"
-  const partner = familyData[memberId]
-  return partner ? partner.nomeCompleto : "Ainda não temos este dado"
-}
-
-// Contar filhos de um membro
-export const countChildren = (memberId, familyData) => {
-  const members = Object.values(familyData)
-  return members.filter(member => 
-    member.pai === memberId || member.mae === memberId
-  ).length
-}
-
-// Contar netos de um membro
-export const countGrandchildren = (memberId, familyData) => {
-  const members = Object.values(familyData)
-  const children = members.filter(member => 
-    member.pai === memberId || member.mae === memberId
-  )
-  
-  let grandchildrenCount = 0
-  children.forEach(child => {
-    grandchildrenCount += countChildren(child.id, familyData)
+  const founders = members.filter(m => {
+    const noFather = !m.pai || m.pai === "99" || m.pai === null || m.pai === undefined
+    const noMother = !m.mae || m.mae === "99" || m.mae === null || m.mae === undefined
+    return noFather && noMother
   })
-  
-  return grandchildrenCount
-}
 
-// Obter filhos de um membro
-export const getChildren = (memberId, familyData) => {
-  const members = Object.values(familyData)
-  return members.filter(member => 
-    (String(member.pai) === String(memberId) && String(member.pai) !== "99") || 
-    (String(member.mae) === String(memberId) && String(member.mae) !== "99")
-  )
-}
+  const buildBranch = (memberId, level = 0) => {
+    const member = membersMap.get(memberId)
+    if (!member) return null
 
-// Verificar se deve exibir filhos (baseado na lógica de relacionamentos)
-export const shouldShowChildren = (parentId, childId, familyData) => {
-  const parent = familyData[parentId]
-  const child = familyData[childId]
-  
-  if (!parent || !child) return true
-  
-  // Se o filho é de um relacionamento específico que não deve ser exibido
-  // Esta lógica pode ser expandida baseada nos requisitos específicos
-  if (child.pai === "99" || child.mae === "99") {
-    // Filhos com ID 99 são de relacionamentos fora do casamento
-    // Verificar se devem ser exibidos baseado na configuração
-    return false // Por padrão, não exibir
+    const children = getDirectChildren(memberId)
+    let spouse = null
+
+    if (member.casadoCom && membersMap.has(member.casadoCom)) {
+      spouse = membersMap.get(member.casadoCom)
+    }
+
+    return {
+      ...member,
+      level,
+      spouse,
+      children: children.map(child => buildBranch(child.id, level + 1)).filter(Boolean)
+    }
   }
-  
-  return true
-}
 
-// Gerar eventos do calendário baseados nos dados da família
-export const generateFamilyEvents = (familyData) => {
-  const events = []
-  const currentYear = new Date().getFullYear()
-  
-  Object.values(familyData).forEach(member => {
-    // Aniversários
-    if (member.nascimento) {
-      const birthDate = new Date(member.nascimento)
-      const age = calculateAge(member.nascimento, member.falecimento)
-      
-      events.push({
-        id: member.id,
-        nome: member.nomeCompleto,
-        tipo: "aniversario",
-        data: `${currentYear}-${String(birthDate.getMonth() + 1).padStart(2, '0')}-${String(birthDate.getDate()).padStart(2, '0')}`,
-        idade: age,
-        falecido: !!member.falecimento,
-        anoFalecimento: member.falecimento ? new Date(member.falecimento).getFullYear() : null
-      })
-    }
-    
-    // Datas de falecimento (memorial)
-    if (member.falecimento) {
-      const deathDate = new Date(member.falecimento)
-      const yearsSince = currentYear - deathDate.getFullYear()
-      
-      events.push({
-        id: member.id,
-        nome: member.nomeCompleto,
-        tipo: "falecimento",
-        data: `${currentYear}-${String(deathDate.getMonth() + 1).padStart(2, '0')}-${String(deathDate.getDate()).padStart(2, '0')}`,
-        anosDesde: yearsSince
-      })
-    }
-  })
-  
-  return events
+  return founders.map(founder => buildBranch(founder.id, 0)).filter(Boolean)
 }
-
-// Calcular estatísticas detalhadas da família
-export const calculateDetailedStats = (familyData) => {
   const members = Object.values(familyData)
   
   // Aniversários por mês
@@ -255,15 +170,15 @@ export const calculateDetailedStats = (familyData) => {
 
 // Construir árvore genealógica hierárquica
 export const buildFamilyTree = (familyData) => {
-  const members = Object.values(familyData);
-  const membersMap = new Map(members.map(member => [String(member.id), member]));
+  const members = Object.values(familyData)
+  const membersMap = new Map(members.map(member => [member.id, member]))
 
   const getDirectChildren = (parentId) => {
-    return members.filter(member =>
-      (String(member.pai) === String(parentId)) ||
-      (String(member.mae) === String(parentId))
-    );
-  };
+    return members.filter(member => 
+      (String(member.pai) === String(parentId) && member.pai !== "99") || 
+      (String(member.mae) === String(parentId) && member.mae !== "99")
+    )
+  }
 
   const founders = members.filter(m => {
     const noFather = !m.pai || m.pai === "99" || m.pai === null || m.pai === undefined
@@ -271,18 +186,17 @@ export const buildFamilyTree = (familyData) => {
     return noFather && noMother
   })
 
-
   const buildBranch = (memberId, level = 0) => {
     const member = membersMap.get(memberId)
     if (!member) return null
-  
+
     const children = getDirectChildren(memberId)
     let spouse = null
-  
+
     if (member.casadoCom && membersMap.has(member.casadoCom)) {
       spouse = membersMap.get(member.casadoCom)
     }
-  
+
     return {
       ...member,
       level,
@@ -291,8 +205,6 @@ export const buildFamilyTree = (familyData) => {
     }
   }
 
-  const tree = founders.map(founder => buildBranch(founder.id, 0)).filter(Boolean);
-
-  return tree;
-};
+  return founders.map(founder => buildBranch(founder.id, 0)).filter(Boolean)
+}
 
