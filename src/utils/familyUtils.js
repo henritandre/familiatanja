@@ -257,9 +257,8 @@ export const calculateDetailedStats = (familyData) => {
 // Construir árvore genealógica hierárquica
 export const buildFamilyTree = (familyData) => {
   const members = Object.values(familyData);
-  const membersMap = new Map(members.map(member => [String(member.id), member])); // IDs como strings
+  const membersMap = new Map(members.map(member => [String(member.id), member]));
 
-  // Função para encontrar os filhos diretos de um membro
   const getDirectChildren = (parentId) => {
     return members.filter(member =>
       (String(member.pai) === String(parentId) && String(member.pai) !== "99") ||
@@ -267,13 +266,12 @@ export const buildFamilyTree = (familyData) => {
     );
   };
 
-  // Encontrar potenciais fundadores (sem pais ou pais '99')
+  // Founders como antes, sort por ID menor (avô ID1 first)
   const potentialFounders = members.filter(member =>
     (!member.pai && !member.mae) ||
     (String(member.pai) === "99" && String(member.mae) === "99")
   );
 
-  // Excluir quem é filho de alguém (evita loops)
   const allChildrenIds = new Set();
   members.forEach(member => {
     if (member.pai && String(member.pai) !== "99") allChildrenIds.add(String(member.id));
@@ -281,50 +279,47 @@ export const buildFamilyTree = (familyData) => {
   });
 
   let founders = potentialFounders.filter(member => !allChildrenIds.has(String(member.id)));
-
-  // Sort founders por ID (menor primeiro, ex: avô ID1 antes de avó ID2)
   founders.sort((a, b) => parseInt(a.id) - parseInt(b.id));
 
-  // Merge fundadores se casados (ex: avô como root, avó como spouse)
+  // Merge casados: Avô root, avó spouse
   if (founders.length > 1) {
-    const primaryFounder = founders[0]; // ID menor
-    const potentialSpouse = founders.find(f => String(f.id) !== String(primaryFounder.id) && String(f.casadoCom) === String(primaryFounder.id));
-    if (potentialSpouse) {
-      // Remove spouse da lista de founders, vai ser adicionado via spouse
-      founders = founders.filter(f => f.id !== potentialSpouse.id);
+    const primary = founders[0];
+    const spouseCandidate = founders.find(f => String(f.casadoCom) === String(primary.id));
+    if (spouseCandidate) {
+      founders = [primary]; // Só root, spouse adicionado depois
     }
   }
 
-  console.log('Founders detectados:', founders.map(f => f.id)); // Debug
+  const buildBranch = (memberId, level = 0, visited = new Set()) => {
+    const memberKey = String(memberId);
+    if (visited.has(memberKey)) return null; // Skip duplicata
+    visited.add(memberKey);
 
-  // Função recursiva para construir a árvore
-  const buildBranch = (memberId, level = 0) => {
-    const member = membersMap.get(String(memberId));
+    const member = membersMap.get(memberKey);
     if (!member) return null;
 
     const spouseId = member.casadoCom ? String(member.casadoCom) : null;
     const spouse = spouseId && spouseId !== "99" ? membersMap.get(spouseId) : null;
 
-    // Coletar children do member E do spouse (pra casal compartilhar filhos)
+    // Children do casal, unique
     const childrenFromMember = getDirectChildren(memberId);
     const childrenFromSpouse = spouseId ? getDirectChildren(spouseId) : [];
-    
-    // Unir e remover duplicatas (ex: filhos com ambos pais válidos)
-    const uniqueChildren = [...new Set([...childrenFromMember, ...childrenFromSpouse].map(c => c.id))].map(id => membersMap.get(String(id)));
+    const uniqueChildrenIds = new Set([...childrenFromMember, ...childrenFromSpouse].map(c => String(c.id)));
 
-    console.log(`Children para ${member.id} (e spouse ${spouseId}):`, uniqueChildren.map(c => c.id)); // Debug
+    // Filtra children não visitados
+    const children = Array.from(uniqueChildrenIds)
+      .filter(id => !visited.has(id))
+      .map(id => buildBranch(id, level + 1, visited))
+      .filter(Boolean);
 
     return {
       ...member,
       level,
       spouse,
-      children: uniqueChildren.map(child => buildBranch(child.id, level + 1)).filter(Boolean)
+      children
     };
   };
 
-  // Construir a árvore a partir dos fundadores
-  const tree = founders.map(founder => buildBranch(founder.id, 0)).filter(Boolean);
-
+  const tree = founders.map(founder => buildBranch(founder.id, 0, new Set())).filter(Boolean);
   return tree;
 };
-
