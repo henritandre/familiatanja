@@ -110,6 +110,48 @@
   --sidebar-ring: oklch(0.556 0 0);
 }
 
+.family-branch {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.connector-heart {
+  font-size: 16px;
+  color: red;
+}
+
+.branch-line-horizontal {
+  position: relative;
+}
+
+.branch-line-horizontal::before {
+  content: '';
+  position: absolute;
+  top: -20px;
+  left: 50%;
+  width: 2px;
+  height: 20px;
+  background: #ccc;
+}
+
+/* Pra ramificações verticais */
+.children-connector {
+  display: flex;
+  justify-content: center;
+  position: relative;
+}
+
+.children-connector::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 50%;
+  width: 2px;
+  height: 20px;
+  background: #ccc;
+}
+
 @layer base {
   * {
     @apply border-border outline-ring/50;
