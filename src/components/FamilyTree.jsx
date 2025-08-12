@@ -205,6 +205,7 @@ const FamilyTree = () => {
   }
 
   const tree = buildFamilyTree(familyData)
+  console.log('Árvore Genealógica Construída:', JSON.stringify(tree, null, 2));
 
   const renderFamilyBranch = (members, level = 0) => {
     return (
