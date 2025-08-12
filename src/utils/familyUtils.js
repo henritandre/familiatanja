@@ -279,9 +279,9 @@ export const buildFamilyTree = (familyData) => {
     if (!member) return null
 
     const children = getDirectChildren(memberId)
-    const spouseId = String(member.casadoCom);
-    const spouse = spouseId && spouseId !== "99" ? membersMap.get(spouseId) : null;
-    return { ...member, level, spouse, children: ... };
+    const spouseId = String(member.casadoCom)
+    const spouse = spouseId && spouseId !== "99" ? membersMap.get(spouseId) : null
+    return { ...member, level, spouse, children: ... }
       
     return {
       ...member,
