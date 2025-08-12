@@ -206,67 +206,68 @@ const FamilyTree = () => {
 
   const tree = buildFamilyTree(familyData)
 
-const renderFamilyBranch = (members, level = 0) => {
-  if (!members || members.length === 0) {
-    return null;
-  }
-
-  // Lógica para evitar duplicar ramos de filhos
-  const processedChildren = new Set();
-
-  return (
-    <div className="flex flex-col items-center">
-      <div className="flex justify-center gap-4">
-        {members.map(member => {
-          // Se o membro é cônjuge de alguém que já foi processado, não o renderize como um "fundador" de ramo
-          if (members.some(m => String(m.casadoCom) === String(member.id))) {
-             const mainMember = members.find(m => String(m.casadoCom) === String(member.id));
-             if (mainMember && members.indexOf(mainMember) < members.indexOf(member)) {
-               return null;
-             }
-          }
-
-          return (
-            <div key={member.id} className="flex flex-col items-center relative">
-              {/* Bloco do Casal */}
-              <div className="flex items-start gap-2">
-                <FamilyMember 
-                  member={member} 
-                  onClick={setSelectedMember}
-                  level={level}
-                />
-                {member.spouse && (
-                  <>
-                    {/* Linha conectando o casal */}
-                    <div className="absolute top-10 left-full w-2 h-0.5 bg-gray-300"></div>
-                    <FamilyMember 
-                      member={member.spouse} 
-                      onClick={setSelectedMember}
-                      level={level}
-                    />
-                  </>
-                )}
-              </div>
-
-              {/* Renderizar filhos */}
-              {member.children && member.children.length > 0 && !processedChildren.has(member.id) && (
-                <div className="mt-8 flex flex-col items-center">
-                  {/* Linha conectora para baixo */}
-                  <div className="w-px h-8 bg-gray-300"></div>
-                  <div className="flex justify-center gap-6">
-                    {renderFamilyBranch(member.children, level + 1)}
-                  </div>
+  const renderFamilyBranch = (members, level = 0) => {
+    if (!members || members.length === 0) {
+      return null;
+    }
+  
+    // Lógica para evitar duplicar ramos de filhos
+    const processedChildren = new Set();
+  
+    return (
+      <div className="flex flex-col items-center">
+        <div className="flex justify-center gap-4">
+          {members.map(member => {
+            // Se o membro é cônjuge de alguém que já foi processado, não o renderize como um "fundador" de ramo
+            if (members.some(m => String(m.casadoCom) === String(member.id))) {
+               const mainMember = members.find(m => String(m.casadoCom) === String(member.id));
+               if (mainMember && members.indexOf(mainMember) < members.indexOf(member)) {
+                 return null;
+               }
+            }
+  
+            return (
+              <div key={member.id} className="flex flex-col items-center relative">
+                {/* Bloco do Casal */}
+                <div className="flex items-start gap-2">
+                  <FamilyMember 
+                    member={member} 
+                    onClick={setSelectedMember}
+                    level={level}
+                  />
+                  {member.spouse && (
+                    <>
+                      {/* Linha conectando o casal */}
+                      <div className="absolute top-10 left-full w-2 h-0.5 bg-gray-300"></div>
+                      <FamilyMember 
+                        member={member.spouse} 
+                        onClick={setSelectedMember}
+                        level={level}
+                      />
+                    </>
+                  )}
                 </div>
-              )}
-              {(() => {
-                member.children.forEach(c => processedChildren.add(c.pai, c.mae));
-              })()}
-            </div>
-          )
-        })}
+  
+                {/* Renderizar filhos */}
+                {member.children && member.children.length > 0 && !processedChildren.has(member.id) && (
+                  <div className="mt-8 flex flex-col items-center">
+                    {/* Linha conectora para baixo */}
+                    <div className="w-px h-8 bg-gray-300"></div>
+                    <div className="flex justify-center gap-6">
+                      {renderFamilyBranch(member.children, level + 1)}
+                    </div>
+                  </div>
+                )}
+                {(() => {
+                  member.children.forEach(c => processedChildren.add(c.pai, c.mae));
+                })()}
+              </div>
+            )
+          })}
+        </div>
       </div>
-    </div>
-  )
+    )
+  }
 }
 
 export default FamilyTree
