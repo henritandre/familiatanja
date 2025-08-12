@@ -55,10 +55,17 @@ export const countGrandchildren = (memberId, familyData) => {
 // Obter filhos de um membro
 export const getChildren = (memberId, familyData) => {
   const members = Object.values(familyData)
-  return members.filter(member => 
-    (String(member.pai) === String(memberId) && String(member.pai) !== "99") || 
-    (String(member.mae) === String(memberId) && String(member.mae) !== "99")
-  )
+  return members.filter(member => {
+    // Ignora pais/mães que sejam "99" ou não definidos
+    const hasFather = member.pai && String(member.pai) !== "99";
+    const hasMother = member.mae && String(member.mae) !== "99";
+
+    // Verifica se o pai ou a mãe corresponde ao memberId
+    const isChildOfFather = hasFather && String(member.pai) === String(memberId);
+    const isChildOfMother = hasMother && String(member.mae) === String(memberId);
+
+    return isChildOfFather || isChildOfMother;
+  })
 }
 
 // Verificar se deve exibir filhos (baseado na lógica de relacionamentos)
