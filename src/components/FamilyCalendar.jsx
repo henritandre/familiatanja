@@ -193,12 +193,18 @@ const FamilyCalendar = () => {
     })
   }
 
-  const getDaysUntilEvent = (dateString) => {
-    const eventDate = new Date(dateString)
-    const today = new Date()
-    const diffTime = eventDate - today
-    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24))
-    return diffDays
+ const getDaysUntilEvent = (dateString) => {
+    if (!dateString) return 9999;
+    
+    const eventDate = new Date(dateString);
+    if (isNaN(eventDate.getTime())) return 9999;
+    
+    const today = new Date();
+    today.setHours(0, 0, 0, 0); // Normaliza para comparar apenas datas
+    
+    const diffTime = eventDate - today;
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    return diffDays;
   }
 
   if (loading) {
