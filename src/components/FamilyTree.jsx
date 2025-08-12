@@ -207,32 +207,32 @@ const FamilyTree = () => {
   const tree = buildFamilyTree(familyData)
   console.log('Árvore Genealógica Construída:', JSON.stringify(tree, null, 2));
 
-  const renderFamilyBranch = (members, level = 0) => {
-    return (
-      <div className="flex justify-center gap-8 mb-12">
-        {members.map(member => (
-          <div key={member.id} className="flex flex-col items-center">
-            <FamilyMember 
-              member={member} 
-              onClick={setSelectedMember}
-              level={level}
-            />
-            
-            {/* Renderizar filhos */}
-            {member.children && member.children.length > 0 && (
-              <div className="mt-8">
-                {/* Linha conectora */}
-                <div className="w-px h-8 bg-gray-300 mx-auto mb-4"></div>
-                <div className="flex justify-center gap-6">
-                  {renderFamilyBranch(member.children, level + 1)}
-                </div>
-              </div>
-            )}
-          </div>
-        ))}
-      </div>
-    )
-  }
+const renderFamilyBranch = (members, level = 0) => {
+  return (
+    <div className="family-branch" style={{ marginLeft: level * 20 }}>
+      {members.map(member => (
+        <div key={member.id} className="family-member-container">
+          <FamilyMember member={member} onClick={setSelectedMember} level={level} />
+          {/* Renderizar spouse do tree (já calculado) */}
+          {member.spouse && (
+            <div className="spouse-connector">
+              <Heart size={16} />
+              <FamilyMember member={member.spouse} onClick={setSelectedMember} level={level} />
+            </div>
+          )}
+          {/* Renderizar filhos */}
+          {member.children && member.children.length > 0 && (
+            <div className="children-connector">
+              {/* Linha conectora */}
+              <div className="connector-line"></div>
+              {renderFamilyBranch(member.children, level + 1)}
+            </div>
+          )}
+        </div>
+      ))}
+    </div>
+  );
+};
 
   return (
     <div className="min-h-screen bg-gray-50 py-16">
