@@ -206,72 +206,65 @@ const FamilyTree = () => {
 
   const tree = buildFamilyTree(familyData)
 
-  const renderFamilyBranch = (members, level = 0) => {
-    return (
-      <div className="flex justify-center gap-8 mb-12">
-        {members.map(member => (
-          <div key={member.id} className="flex flex-col items-center">
-            <FamilyMember 
-              member={member} 
-              onClick={setSelectedMember}
-              level={level}
-            />
-            
-            {/* Renderizar filhos */}
-            {member.children && member.children.length > 0 && (
-              <div className="mt-8">
-                {/* Linha conectora */}
-                <div className="w-px h-8 bg-gray-300 mx-auto mb-4"></div>
-                <div className="flex justify-center gap-6">
-                  {renderFamilyBranch(member.children, level + 1)}
-                </div>
-              </div>
-            )}
-          </div>
-        ))}
-      </div>
-    )
+const renderFamilyBranch = (members, level = 0) => {
+  if (!members || members.length === 0) {
+    return null;
   }
 
+  // Lógica para evitar duplicar ramos de filhos
+  const processedChildren = new Set();
+
   return (
-    <div className="min-h-screen bg-gray-50 py-16">
-      <div className="max-w-6xl mx-auto px-6">
-        <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="text-center mb-16"
-        >
-          <h2 className="text-4xl md:text-6xl font-thin mb-4 text-gray-900 tracking-tight">
-            Árvore Genealógica
-          </h2>
-          <p className="text-xl text-gray-600 font-light">
-            Clique em qualquer foto para ver mais detalhes
-          </p>
-        </motion.div>
+    <div className="flex flex-col items-center">
+      <div className="flex justify-center gap-4">
+        {members.map(member => {
+          // Se o membro é cônjuge de alguém que já foi processado, não o renderize como um "fundador" de ramo
+          if (members.some(m => String(m.casadoCom) === String(member.id))) {
+             const mainMember = members.find(m => String(m.casadoCom) === String(member.id));
+             if (mainMember && members.indexOf(mainMember) < members.indexOf(member)) {
+               return null;
+             }
+          }
 
-        {/* Árvore genealógica */}
-        {tree.length > 0 ? (
-          <div className="text-center">
-            <h3 className="text-2xl font-light text-gray-700 mb-6">Fundadores</h3>
-            {renderFamilyBranch(tree)}
-          </div>
-        ) : (
-          <div className="text-center py-16">
-            <p className="text-gray-500 text-xl">Nenhum dado familiar encontrado</p>
-          </div>
-        )}
+          return (
+            <div key={member.id} className="flex flex-col items-center relative">
+              {/* Bloco do Casal */}
+              <div className="flex items-start gap-2">
+                <FamilyMember 
+                  member={member} 
+                  onClick={setSelectedMember}
+                  level={level}
+                />
+                {member.spouse && (
+                  <>
+                    {/* Linha conectando o casal */}
+                    <div className="absolute top-10 left-full w-2 h-0.5 bg-gray-300"></div>
+                    <FamilyMember 
+                      member={member.spouse} 
+                      onClick={setSelectedMember}
+                      level={level}
+                    />
+                  </>
+                )}
+              </div>
+
+              {/* Renderizar filhos */}
+              {member.children && member.children.length > 0 && !processedChildren.has(member.id) && (
+                <div className="mt-8 flex flex-col items-center">
+                  {/* Linha conectora para baixo */}
+                  <div className="w-px h-8 bg-gray-300"></div>
+                  <div className="flex justify-center gap-6">
+                    {renderFamilyBranch(member.children, level + 1)}
+                  </div>
+                </div>
+              )}
+              {(() => {
+                member.children.forEach(c => processedChildren.add(c.pai, c.mae));
+              })()}
+            </div>
+          )
+        })}
       </div>
-
-      {/* Modal de detalhes */}
-      <AnimatePresence>
-        {selectedMember && (
-          <FamilyMemberCard 
-            member={selectedMember} 
-            familyData={familyData}
-            onClose={() => setSelectedMember(null)} 
-          />
-        )}
-      </AnimatePresence>
     </div>
   )
 }
