@@ -40,7 +40,7 @@ const FamilyMemberCard = ({ member, familyData, onClose }) => {
         <div className="text-center mb-6">
           <div className="w-24 h-24 mx-auto mb-4 rounded-full bg-gray-200 flex items-center justify-center overflow-hidden">
             <img 
-              src={member.foto || "/api/placeholder/100/100"} 
+              src={`/img/${member.id}.jpg`} 
               alt={member.nomeCompleto}
               className="w-full h-full object-cover"
             />
@@ -168,7 +168,7 @@ const FamilyMember = ({ member, onClick, level = 0 }) => {
         onClick={() => onClick(member)}
       >
         <img 
-          src={member.foto || "/api/placeholder/100/100"} 
+          src={`/img/${member.id}.jpg`} 
           alt={member.nome}
           className="w-full h-full object-cover"
         />
