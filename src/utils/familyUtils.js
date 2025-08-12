@@ -87,7 +87,8 @@ export const generateFamilyEvents = (familyData) => {
   Object.values(familyData).forEach(member => {
     // Aniversários
     if (member.nascimento) {
-      const birthDate = new Date(member.nascimento)
+      const birthDate = new Date(member.nascimento + 'T00:00:00Z')
+      const eventDateThisYear = new Date(Date.UTC(currentYear, birthDate.getUTCMonth(), birthDate.getUTCDate()))
       const age = calculateAge(member.nascimento, member.falecimento)
       
       events.push({
@@ -278,7 +279,10 @@ export const buildFamilyTree = (familyData) => {
     if (!member) return null
 
     const children = getDirectChildren(memberId)
-    
+    const spouseId = String(member.casadoCom);
+    const spouse = spouseId && spouseId !== "99" ? membersMap.get(spouseId) : null;
+    return { ...member, level, spouse, children: ... };
+      
     return {
       ...member,
       level,
