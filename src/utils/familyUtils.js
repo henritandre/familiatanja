@@ -271,21 +271,23 @@ export const buildFamilyTree = (familyData) => {
   );
 
   const buildBranch = (memberId, level = 0) => {
-    const member = membersMap.get(String(memberId));
-    if (!member) return null;
-
-    const spouse = member.casadoCom ? membersMap.get(String(member.casadoCom)) : null;
-
-    // Pega os filhos de AMBOS os pais, para não duplicar
-    const children = getDirectChildren(member.id);
-
+    const member = membersMap.get(memberId)
+    if (!member) return null
+  
+    const children = getDirectChildren(memberId)
+    let spouse = null
+  
+    if (member.casadoCom && membersMap.has(member.casadoCom)) {
+      spouse = membersMap.get(member.casadoCom)
+    }
+  
     return {
       ...member,
-      spouse: spouse, // Adiciona o cônjuge aqui
       level,
+      spouse,
       children: children.map(child => buildBranch(child.id, level + 1)).filter(Boolean)
-    };
-  };
+    }
+  }
 
   const tree = founders.map(founder => buildBranch(founder.id, 0)).filter(Boolean);
 
