@@ -265,10 +265,12 @@ export const buildFamilyTree = (familyData) => {
     );
   };
 
-  const founders = members.filter(member => 
-    (!member.pai || member.pai === "99" || !membersMap.has(String(member.pai))) &&
-    (!member.mae || member.mae === "99" || !membersMap.has(String(member.mae)))
-  );
+  const founders = members.filter(m => {
+    const noFather = !m.pai || m.pai === "99" || m.pai === null || m.pai === undefined
+    const noMother = !m.mae || m.mae === "99" || m.mae === null || m.mae === undefined
+    return noFather && noMother
+  })
+
 
   const buildBranch = (memberId, level = 0) => {
     const member = membersMap.get(memberId)
