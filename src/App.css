@@ -110,46 +110,50 @@
   --sidebar-ring: oklch(0.556 0 0);
 }
 
-.family-branch {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
+.tree {
+  min-width: 800px; /* Ajuste pra caber na tela, overflow-x se preciso */
 }
 
-.connector-heart {
-  font-size: 16px;
-  color: red;
+.node {
+  margin: 1rem;
 }
 
-.branch-line-horizontal {
-  position: relative;
+.couple {
+  white-space: nowrap; /* Evita quebra de linha no casal */
 }
 
-.branch-line-horizontal::before {
+.connector-vertical::before {
   content: '';
   position: absolute;
   top: -20px;
   left: 50%;
   width: 2px;
   height: 20px;
-  background: #ccc;
+  background-color: #ccc;
+  transform: translateX(-50%);
 }
 
-/* Pra ramificações verticais */
-.children-connector {
-  display: flex;
-  justify-content: center;
-  position: relative;
+.branch-horizontal {
+  min-height: 20px;
 }
 
-.children-connector::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 50%;
-  width: 2px;
-  height: 20px;
-  background: #ccc;
+.horizontal-line {
+  height: 2px;
+}
+
+.children {
+  padding-top: 20px;
+}
+
+/* Responsivo: Em mobile, vira cascata mas com conectoras */
+@media (max-width: 768px) {
+  .children {
+    flex-direction: column;
+    align-items: center;
+  }
+  .horizontal-line {
+    display: none; /* Esconde horizontal em small screens */
+  }
 }
 
 @layer base {
