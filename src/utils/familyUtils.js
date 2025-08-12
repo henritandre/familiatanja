@@ -255,37 +255,39 @@ export const calculateDetailedStats = (familyData) => {
 
 // Construir árvore genealógica hierárquica
 export const buildFamilyTree = (familyData) => {
-  const members = Object.values(familyData)
-  const membersMap = new Map(members.map(member => [member.id, member]))
+  const members = Object.values(familyData);
+  const membersMap = new Map(members.map(member => [member.id, member]));
 
-  // Função para encontrar os filhos diretos de um membro
-const getDirectChildren = (parentId) => {
-  return members.filter(member => 
-    (String(member.pai) === String(parentId) && String(member.pai) !== "99") || 
-    (String(member.mae) === String(parentId) && String(member.mae) !== "99")
-  )
-}
+  // Função para encontrar os filhos diretos de um membro (COM CORREÇÃO)
+  const getDirectChildren = (parentId) => {
+    return members.filter(member =>
+      (String(member.pai) === String(parentId) && member.pai && member.pai !== "99") ||
+      (String(member.mae) === String(parentId) && member.mae && member.mae !== "99")
+    );
+  };
 
-  // Encontrar os fundadores (pessoas sem pais registrados ou com pais '99')
-  const founders = members.filter(member => !member.pai && !member.mae)
-  
+  // Encontrar os fundadores (COM CORREÇÃO PARA INCLUIR SEUS AVÓS)
+  const founders = members.filter(member =>
+    (!member.pai || member.pai === "99") && (!member.mae || member.mae === "99")
+  );
+
   // Função recursiva para construir a árvore
   const buildBranch = (memberId, level = 0) => {
-    const member = membersMap.get(memberId)
-    if (!member) return null
+    const member = membersMap.get(memberId);
+    if (!member) return null;
 
-    const children = getDirectChildren(memberId)
-    
+    const children = getDirectChildren(memberId);
+
     return {
       ...member,
       level,
       children: children.map(child => buildBranch(child.id, level + 1)).filter(Boolean)
-    }
-  }
-  
+    };
+  };
+
   // Construir a árvore completa a partir dos fundadores
-  const tree = founders.map(founder => buildBranch(founder.id, 0)).filter(Boolean)
-  
-  return tree
-}
+  const tree = founders.map(founder => buildBranch(founder.id, 0)).filter(Boolean);
+
+  return tree;
+};
 
