@@ -1,30 +1,141 @@
-// Utilitários para manipulação de dados da família
+import { parseBrazilianDate } from './dateUtils';
 
 // Calcular idade
 export const calculateAge = (birthDateString, deathDateString = null) => {
-  if (!birthDateString) return null
+  if (!birthDateString) return null;
 
-  const birthDate = new Date(birthDateString)
-  if (isNaN(birthDate.getTime())) return null // Invalid birth date
+  const birthDate = parseBrazilianDate(birthDateString);
+  if (!birthDate || isNaN(birthDate.getTime())) return null;
 
-  const endDate = deathDateString ? new Date(deathDateString) : new Date()
-  if (isNaN(endDate.getTime())) return null // Invalid death date
+  const endDate = deathDateString ? parseBrazilianDate(deathDateString) : new Date();
+  if (!endDate || isNaN(endDate.getTime())) return null;
 
-  let age = endDate.getFullYear() - birthDate.getFullYear()
-  const monthDiff = endDate.getMonth() - birthDate.getMonth()
+  let age = endDate.getFullYear() - birthDate.getFullYear();
+  const monthDiff = endDate.getMonth() - birthDate.getMonth();
 
   if (monthDiff < 0 || (monthDiff === 0 && endDate.getDate() < birthDate.getDate())) {
-    age--
+    age--;
   }
-  return Math.max(0, age) // Garante que a idade não seja negativa
-}
+  return Math.max(0, age);
+};
 
 // Formatar data
 export const formatDate = (dateString) => {
-  if (!dateString) return "Ainda não temos este dado"
-  const date = new Date(dateString)
-  return date.toLocaleDateString('pt-BR')
-}
+  if (!dateString) return "Ainda não temos este dado";
+  const date = parseBrazilianDate(dateString);
+  if (!date || isNaN(date.getTime())) return "Data inválida";
+  return date.toLocaleDateString('pt-BR');
+};
+
+// Gerar eventos do calendário
+export const generateFamilyEvents = (familyData) => {
+  const events = [];
+  const currentYear = new Date().getFullYear();
+  
+  Object.values(familyData).forEach(member => {
+    // Aniversários
+    if (member.nascimento) {
+      const birthDate = parseBrazilianDate(member.nascimento);
+      if (!birthDate || isNaN(birthDate.getTime())) {
+        console.warn(`Data de nascimento inválida para ${member.nomeCompleto}: ${member.nascimento}`);
+        return;
+      }
+      
+      const eventDateThisYear = new Date(currentYear, birthDate.getMonth(), birthDate.getDate());
+      const age = calculateAge(member.nascimento, member.falecimento);
+      
+      events.push({
+        id: member.id,
+        nome: member.nomeCompleto,
+        tipo: "aniversario",
+        data: eventDateThisYear.toISOString().split('T')[0],
+        idade: age,
+        falecido: !!member.falecimento,
+        anoFalecimento: member.falecimento ? new Date(member.falecimento).getFullYear() : null,
+        nascimentoOriginal: member.nascimento
+      });
+    }
+    
+    // Datas de falecimento
+    if (member.falecimento) {
+      const deathDate = parseBrazilianDate(member.falecimento);
+      if (!deathDate || isNaN(deathDate.getTime())) {
+        console.warn(`Data de falecimento inválida para ${member.nomeCompleto}: ${member.falecimento}`);
+        return;
+      }
+      
+      const yearsSince = currentYear - deathDate.getFullYear();
+      const eventDateThisYear = new Date(currentYear, deathDate.getMonth(), deathDate.getDate());
+      
+      events.push({
+        id: member.id,
+        nome: member.nomeCompleto,
+        tipo: "falecimento",
+        data: eventDateThisYear.toISOString().split('T')[0],
+        anosDesde: yearsSince
+      });
+    }
+  });
+  
+  return events;
+};
+
+// Construir árvore genealógica (versão simplificada)
+export const buildFamilyTree = (familyData) => {
+  const members = Object.values(familyData);
+  const membersMap = new Map(members.map(member => [String(member.id), member]));
+  
+  // Encontrar membros sem pais
+  const founders = members.filter(member => 
+    (!member.pai || member.pai === "99") && 
+    (!member.mae || member.mae === "99")
+  );
+  
+  // Função para encontrar filhos
+  const getChildren = (parentId) => {
+    return members.filter(member => 
+      String(member.pai) === String(parentId) || 
+      String(member.mae) === String(parentId)
+    );
+  };
+  
+  // Função recursiva para construir a árvore
+  const buildBranch = (member) => {
+    const children = getChildren(member.id);
+    return {
+      ...member,
+      children: children.map(child => buildBranch(child))
+    };
+  };
+  
+  return founders.map(founder => buildBranch(founder));
+};
+
+// Calcular estatísticas (versão simplificada)
+export const calculateDetailedStats = (familyData) => {
+  const members = Object.values(familyData);
+  
+  // Dados básicos
+  const stats = {
+    totalMembers: members.length,
+    livingMembers: members.filter(p => !p.falecimento).length,
+    monthWithMostBirthdays: "Jan",
+    genderData: [
+      { name: 'Homens', value: members.filter(p => p.sexo === 'M').length, color: '#3B82F6' },
+      { name: 'Mulheres', value: members.filter(p => p.sexo === 'F').length, color: '#EC4899' }
+    ],
+    locationData: [],
+    maxAgeDifference: 0,
+    maxAgeDifferenceFamily: '',
+    averageChildren: 0,
+    oldestPerson: { name: "N/A", age: 0 },
+    youngestPerson: { name: "N/A", age: 0 },
+    growthData: [],
+    totalChildren: 0
+  };
+  
+  return stats;
+};
 
 // Obter informações de relacionamento
 export const getRelationshipInfo = (memberId, familyData) => {
