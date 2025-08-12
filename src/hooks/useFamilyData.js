@@ -33,8 +33,8 @@ export const useFamilyData = () => {
             localFalecimento: data['Local de Falecimento'],
             moraEm: data['Mora em'],
             casadoCom: data['Casado Com'],
-            mae: data.Mãe === '99' || !data.Mãe ? null : data.Mãe,
-            pai: data.Pai === '99' || !data.Pai ? null : data.Pai,
+            mae: data.Mãe === '99' ? null : data.Mãe,
+            pai: data.Pai === '99' ? null : data.Pai,
             outrosMae: data['Outros Mãe'],
             outrosPai: data['Outros Pai'],
             foto: `/api/placeholder/100/100` // Placeholder para fotos
