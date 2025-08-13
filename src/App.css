@@ -111,25 +111,30 @@
 }
 
 .tree {
-  min-width: 800px; /* Ajuste pra caber na tela, overflow-x se preciso */
+  min-width: 100vw; /* Força largura pra spread horizontal */
 }
 
 .node {
-  margin: 1rem;
+  min-width: 150px; /* Espaço por node */
+  text-align: center;
 }
 
 .couple {
-  white-space: nowrap; /* Evita quebra de linha no casal */
+  white-space: nowrap; /* Impede quebra no casal */
+}
+
+.connector-vertical {
+  position: relative;
 }
 
 .connector-vertical::before {
   content: '';
   position: absolute;
-  top: -20px;
+  top: -10px;
   left: 50%;
   width: 2px;
-  height: 20px;
-  background-color: #ccc;
+  height: 10px;
+  background-color: #999;
   transform: translateX(-50%);
 }
 
@@ -138,24 +143,24 @@
 }
 
 .horizontal-line {
-  height: 2px;
+  height: 1px;
 }
 
 .children {
-  padding-top: 20px;
+  flex-wrap: nowrap; /* Não quebra linha, prefere scroll */
+  overflow-x: auto; /* Scroll horizontal se muitos filhos */
+  justify-content: space-around !important; /* Força spread */
 }
 
-/* Responsivo: Em mobile, vira cascata mas com conectoras */
+/* Ajuste pra mais níveis */
 @media (max-width: 768px) {
   .children {
-    flex-direction: column;
-    align-items: center;
+    flex-wrap: wrap; /* Em mobile, permite wrap se necessário */
   }
-  .horizontal-line {
-    display: none; /* Esconde horizontal em small screens */
+  .tree {
+    min-width: auto;
   }
 }
-
 @layer base {
   * {
     @apply border-border outline-ring/50;
