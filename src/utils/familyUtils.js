@@ -3,11 +3,6 @@
 // Calcular idade
 
 // Formatar data
-export const formatDate = (dateString) => {
-  if (!dateString) return "Ainda não temos este dado"
-  const date = new Date(dateString)
-  return date.toLocaleDateString('pt-BR')
-}
 
 // Obter informações de relacionamento
 export const getRelationshipInfo = (memberId, familyData) => {
