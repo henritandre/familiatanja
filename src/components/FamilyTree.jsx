@@ -208,33 +208,30 @@ const FamilyTree = () => {
   console.log('Árvore Genealógica Construída:', JSON.stringify(tree, null, 2));
 
 const renderFamilyBranch = (members, level = 0) => (
-  <div className="tree flex flex-col items-center w-full p-5">
+  <div className="tree flex flex-col items-center w-full p-4">
     {members.map((member, index) => (
-      <div key={`${member.id}-${index}`} className="node relative flex flex-col items-center">
-        {/* Casal como tronco/ramo (horizontal) */}
-        <div className="couple flex items-center gap-2 md:gap-4">
+      <div key={`${member.id}-${index}`} className="node relative flex flex-col items-center w-full">
+        {/* Casal horizontal no centro */}
+        <div className="couple flex items-center justify-center gap-2 md:gap-4 py-2">
           <FamilyMember member={member} onClick={setSelectedMember} level={level} />
           {member.spouse && (
             <>
-              <span className="connector mx-1 text-gray-500">-</span>
+              <span className="connector mx-1 text-gray-500 font-bold">-</span>
               <FamilyMember member={member.spouse} onClick={setSelectedMember} level={level} />
             </>
           )}
         </div>
 
-        {/* Conector vertical pra filhos */}
+        {/* Conector vertical pros filhos */}
         {member.children?.length > 0 && (
-          <div className="connector-vertical w-0.5 h-8 bg-gray-300 mx-auto mt-4 mb-2"></div>
+          <div className="connector-vertical w-0.5 h-6 bg-gray-400 mx-auto mt-2 mb-1"></div>
         )}
 
-        {/* Linha horizontal pra distribuir filhos */}
+        {/* Branch horizontal pra distribuir filhos */}
         {member.children?.length > 0 && (
-          <div className="branch-horizontal relative w-full flex justify-center">
-            <div 
-              className="horizontal-line absolute top-0 left-0 right-0 h-0.5 bg-gray-300" 
-              style={{ width: `${Math.min(member.children.length * 200, 1200)}px`, margin: '0 auto' }}
-            ></div>
-            <div className="children flex justify-around w-full gap-4 md:gap-8 flex-wrap">
+          <div className="branch-horizontal relative flex justify-center w-full" style={{ minWidth: `${member.children.length * 150}px` }}>
+            <div className="horizontal-line absolute top-0 left-0 right-0 h-0.5 bg-gray-400"></div>
+            <div className="children flex justify-around gap-4 md:gap-6 w-full pt-2">
               {renderFamilyBranch(member.children, level + 1)}
             </div>
           </div>
@@ -258,6 +255,12 @@ const renderFamilyBranch = (members, level = 0) => (
             Clique em qualquer foto para ver mais detalhes
           </p>
         </motion.div>
+
+        <div className="min-h-screen bg-gray-50 py-16 overflow-x-auto">
+          <div className="max-w-max mx-auto px-6">
+            {/* ... tree render ... */}
+          </div>
+        </div>
 
         {/* Árvore genealógica */}
         {tree.length > 0 ? (
