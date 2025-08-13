@@ -23,31 +23,28 @@ const FamilyCalendar = () => {
 
   // Filtrar eventos próximos (próximos 60 dias)
   const upcomingEvents = useMemo(() => {
-    const now = new Date()
-    const futureDate = new Date()
-    futureDate.setDate(now.getDate() + 60)
-    
+    const now = new Date();
+    const futureDate = new Date();
+    futureDate.setUTCDate(now.getUTCDate() + 60);
     return allFamilyEvents
       .filter(event => {
-        const eventDate = new Date(event.data)
-        // Ajustar o ano do evento para o ano atual para comparação de próximos eventos
-        const eventDateThisYear = new Date(now.getFullYear(), eventDate.getMonth(), eventDate.getDate())
-        return eventDateThisYear >= now && eventDateThisYear <= futureDate
+        const eventDate = new Date(event.data + 'T00:00:00Z');
+        const eventDateThisYear = new Date(Date.UTC(now.getUTCFullYear(), eventDate.getUTCMonth(), eventDate.getUTCDate()));
+        return eventDateThisYear >= now && eventDateThisYear <= futureDate;
       })
       .sort((a, b) => new Date(a.data) - new Date(b.data))
-      .slice(0, 5) // Mostrar apenas os próximos 5 eventos
-  }, [allFamilyEvents])
+      .slice(0, 5);
+  }, [allFamilyEvents]);
 
   // Obter eventos do mês atual
   const getCurrentMonthEvents = () => {
-    const year = currentDate.getFullYear()
-    const month = currentDate.getMonth()
-    
+    const year = currentDate.getUTCFullYear();
+    const month = currentDate.getUTCMonth();
     return allFamilyEvents.filter(event => {
-      const eventDate = new Date(event.data)
-      return eventDate.getMonth() === month
-    })
-  }
+      const eventDate = new Date(event.data + 'T00:00:00Z');
+      return eventDate.getUTCMonth() === month && eventDate.getUTCFullYear() === year; // Adicione year pra precisão
+    });
+  };
 
   // Obter eventos do ano atual
   const getCurrentYearEvents = () => {
@@ -80,6 +77,8 @@ const FamilyCalendar = () => {
     const lastDay = new Date(year, month + 1, 0)
     const daysInMonth = lastDay.getDate()
     const startingDayOfWeek = firstDay.getDay()
+    const dayEvents = monthEvents.filter(event => new Date(event.data + 'T00:00:00Z').getUTCDate() === day);
+    const isToday = today.getUTCFullYear() === year && today.getUTCMonth() === month && today.getUTCDate() === day;
     
     const days = []
     const monthEvents = getCurrentMonthEvents()
