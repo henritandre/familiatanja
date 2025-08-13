@@ -80,45 +80,63 @@ export const shouldShowChildren = (parentId, childId, familyData) => {
 }
 
 // Gerar eventos do calendário baseados nos dados da família
+export const calculateAge = (birthDateString, deathDateString = null) => {
+  if (!birthDateString) return null;
+  const birthDate = new Date(birthDateString + 'T00:00:00Z'); // Força UTC
+  if (isNaN(birthDate.getTime())) return null;
+
+  const endDate = deathDateString ? new Date(deathDateString + 'T00:00:00Z') : new Date();
+  if (isNaN(endDate.getTime())) return null;
+
+  let age = endDate.getUTCFullYear() - birthDate.getUTCFullYear();
+  const monthDiff = endDate.getUTCMonth() - birthDate.getUTCMonth();
+  if (monthDiff < 0 || (monthDiff === 0 && endDate.getUTCDate() < birthDate.getUTCDate())) {
+    age--;
+  }
+  return Math.max(0, age);
+};
+
+// Formatar data (local BR, mas input UTC)
+export const formatDate = (dateString) => {
+  if (!dateString) return "Ainda não temos este dado";
+  const date = new Date(dateString + 'T00:00:00Z');
+  return date.toLocaleDateString('pt-BR', { timeZone: 'UTC' });
+};
+
+// Gerar eventos com UTC
 export const generateFamilyEvents = (familyData) => {
-  const events = []
-  const currentYear = new Date().getFullYear()
-  
+  const events = [];
+  const currentYear = new Date().getUTCFullYear();
   Object.values(familyData).forEach(member => {
     // Aniversários
     if (member.nascimento) {
-      const birthDate = new Date(member.nascimento + 'T00:00:00Z')
-      const eventDateThisYear = new Date(Date.UTC(currentYear, birthDate.getUTCMonth(), birthDate.getUTCDate()))
-      const age = calculateAge(member.nascimento, member.falecimento)
-      
+      const birthDate = new Date(member.nascimento + 'T00:00:00Z');
+      const age = calculateAge(member.nascimento, member.falecimento);
+      const eventDateThisYear = new Date(Date.UTC(currentYear, birthDate.getUTCMonth(), birthDate.getUTCDate()));
       events.push({
         id: member.id,
         nome: member.nomeCompleto,
         tipo: "aniversario",
-        data: `${currentYear}-${String(birthDate.getMonth() + 1).padStart(2, '0')}-${String(birthDate.getDate()).padStart(2, '0')}`,
+        data: eventDateThisYear.toISOString().split('T')[0],
         idade: age,
-        falecido: !!member.falecimento,
-        anoFalecimento: member.falecimento ? new Date(member.falecimento).getFullYear() : null
-      })
+        falecido: !!member.falecimento
+      });
     }
-    
-    // Datas de falecimento (memorial)
+    // Falecimentos
     if (member.falecimento) {
-      const deathDate = new Date(member.falecimento)
-      const yearsSince = currentYear - deathDate.getFullYear()
-      
+      const deathDate = new Date(member.falecimento + 'T00:00:00Z');
+      const yearsSince = currentYear - deathDate.getUTCFullYear();
       events.push({
         id: member.id,
         nome: member.nomeCompleto,
         tipo: "falecimento",
-        data: `${currentYear}-${String(deathDate.getMonth() + 1).padStart(2, '0')}-${String(deathDate.getDate()).padStart(2, '0')}`,
+        data: deathDate.toISOString().split('T')[0],
         anosDesde: yearsSince
-      })
+      });
     }
-  })
-  
-  return events
-}
+  });
+  return events;
+};
 
 // Calcular estatísticas detalhadas da família
 export const calculateDetailedStats = (familyData) => {
